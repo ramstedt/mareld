@@ -1,6 +1,25 @@
 @import 'tailwindcss';
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --white: #fefefe;
+  --black: #111111;
+  --accent: rgba(186, 145, 107, 1);
+}
+
+body {
+  font-family: var(--content);
+  background-color: var(--white);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--header);
+}
+
+h1 {
+  letter-spacing: 2;
 }
