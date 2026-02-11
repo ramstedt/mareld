@@ -5,10 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 
 export const defaultNavbarConfig = {
-  '/': { color: 'dark', showBorder: false },
-  '/galleri': { color: 'light', showBorder: true },
-  '/galleri/': { color: 'light', showBorder: true },
-  '*': { color: 'light', showBorder: true },
+  '*': { color: 'dark', showBorder: false },
 };
 
 export default function Navbar(props) {
@@ -17,6 +14,7 @@ export default function Navbar(props) {
     brandSecondary,
     links = NavbarDefaults.links,
     navbarConfig = NavbarDefaults.navbarConfig,
+    logo,
   } = {
     ...NavbarDefaults,
     ...props,
@@ -34,7 +32,11 @@ export default function Navbar(props) {
   const matchKey =
     Object.keys(effectiveConfig)
       .sort((a, b) => b.length - a.length)
-      .find((key) => pathname.startsWith(key)) || '*';
+      .find((key) => {
+        if (key === '/') return pathname === '/';
+        if (key === '*') return true;
+        return pathname.startsWith(key);
+      }) || '*';
   const { color, showBorder } = effectiveConfig[matchKey];
 
   useEffect(() => {
@@ -44,7 +46,7 @@ export default function Navbar(props) {
         window.visualViewport?.height ??
         Math.max(window.innerHeight, document.documentElement.clientHeight);
 
-      setAtTop(y < viewportH);
+      setAtTop(y < 20);
 
       if (!initialized.current) {
         initialized.current = true;
@@ -110,10 +112,10 @@ export default function Navbar(props) {
       <nav
         className={`${styles.navbar} ${hidden ? styles.navbarHidden : ''} ${
           atTop && color === 'dark'
-            ? styles.transparent
+            ? styles.transparentTop
             : color === 'dark'
-            ? styles.dark
-            : styles.light
+              ? styles.dark
+              : styles.light
         } ${color === 'light' ? styles.darkText : styles.lightText} ${
           isOpen ? styles.menuOpen : ''
         }`}
@@ -125,11 +127,24 @@ export default function Navbar(props) {
           </Link>
         </div>
         <div className={styles.navLinks}>
-          {safeLinks.map((l) => (
-            <Link key={l.href} href={l.href} onClick={() => setIsOpen(false)}>
-              {l.label}
-            </Link>
-          ))}
+          {safeLinks.map((l) => {
+            const isHashLink = l.href?.startsWith('/#');
+            const isActive = isHashLink
+              ? pathname === '/'
+              : l.href === '/'
+                ? pathname === '/'
+                : pathname.startsWith(l.href);
+            return (
+              <Link
+                key={l.href}
+                href={l.href}
+                onClick={() => setIsOpen(false)}
+                aria-current={isActive ? 'page' : undefined}
+              >
+                {l.label}
+              </Link>
+            );
+          })}
         </div>
         <button
           className={styles.burger}
@@ -160,11 +175,24 @@ export default function Navbar(props) {
           style={{ pointerEvents: isOpen ? 'auto' : 'none' }}
         >
           <div className={styles.navLinks}>
-            {safeLinks.map((l) => (
-              <Link key={l.href} href={l.href} onClick={() => setIsOpen(false)}>
-                {l.label}
-              </Link>
-            ))}
+            {safeLinks.map((l) => {
+              const isHashLink = l.href?.startsWith('/#');
+              const isActive = isHashLink
+                ? pathname === '/'
+                : l.href === '/'
+                  ? pathname === '/'
+                  : pathname.startsWith(l.href);
+              return (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  onClick={() => setIsOpen(false)}
+                  aria-current={isActive ? 'page' : undefined}
+                >
+                  {l.label}
+                </Link>
+              );
+            })}
           </div>
         </div>
         <div className={showBorder ? styles.border : styles.noBorder}></div>
@@ -176,12 +204,5 @@ export default function Navbar(props) {
 export const NavbarDefaults = {
   brandPrimary: 'Mareld',
   brandSecondary: '',
-  links: [
-    { href: '/#om', label: 'Om' },
-    { href: '/#event', label: 'Event' },
-    { href: '/#kurser', label: 'Kurser' },
-    { href: '/galleri', label: 'Galleri' },
-    { href: '/#kontakt', label: 'Kontakt' },
-  ],
   navbarConfig: defaultNavbarConfig,
 };

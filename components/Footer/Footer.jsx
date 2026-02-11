@@ -1,3 +1,5 @@
+'use client';
+
 import { FaXTwitter } from 'react-icons/fa6';
 import {
   BiLogoFacebookCircle,
@@ -8,73 +10,103 @@ import {
 import Link from 'next/link';
 
 export const Footer = (props) => {
-  const {
-    logo,
-    address,
-    contact,
-    columnLinks,
-    socialMediaLinks,
-    footerText,
-    footerLinks,
-  } = {
+  const { address, contact, socialMediaLinks, logo } = {
     ...FooterDefaults,
     ...props,
   };
+
+  const socialIconMap = {
+    facebook: <BiLogoFacebookCircle className='size-6' />,
+    instagram: <BiLogoInstagram className='size-6' />,
+    linkedin: <BiLogoLinkedinSquare className='size-6' />,
+    youtube: <BiLogoYoutube className='size-6' />,
+    x: <FaXTwitter className='size-6' />,
+  };
+
+  const safeSocialLinks = (socialMediaLinks || [])
+    .map((link) => ({
+      ...link,
+      icon: link.icon || socialIconMap[link.network],
+    }))
+    .filter((link) => link.url && link.icon);
+
   return (
-    <footer className='px-[5%] py-12 md:py-18 lg:py-20 bg-(--black) text-(--white)'>
+    <footer
+      id='kontakt'
+      className='px-[5%] py-12 md:py-18 lg:py-20 bg-[var(--surface-dark)] text-[var(--bone)] [--link-hover:var(--bone)]'
+    >
       <div className='container'>
-        <div className='grid grid-cols-1 gap-x-[4vw] gap-y-12 pb-12 md:gap-y-16 md:pb-18 lg:grid-cols-[1fr_0.5fr] lg:gap-y-4 lg:pb-20 color-(--white)'>
-          <div>
-            <div className='rb-6 mb-6 md:mb-8'>
-              <Link href={logo.url}>
-                <img src={logo.src} alt={logo.alt} className='inline-block' />
-              </Link>
-            </div>
-            <div className='rb-6 mb-6 md:mb-8'>
+        <div className='grid grid-cols-1 gap-y-10 md:grid-cols-[1.2fr_0.8fr] md:gap-x-16'>
+          <div className='space-y-6'>
+            {logo?.src ? (
               <div>
-                <p className='mb-1 text-sm font-semibold'>{address.label}</p>
-                <p className='mb-5 text-sm md:mb-6'>{address.value}</p>
+                <img
+                  src={logo.src}
+                  alt={logo.alt || 'Logo'}
+                  width={200}
+                  height={60}
+                  loading='lazy'
+                  decoding='async'
+                />
               </div>
-              <div>
-                <p className='mb-1 text-sm font-semibold'>{contact.label}</p>
-                <p className='flex flex-col text-sm underline decoration-(--white) underline-offset-1 md:mb-6'>
-                  <Link href={`tel:${contact.phone}`} className='text-white'>
-                    {contact.phone}
-                  </Link>
-                  <Link href={`mailto:${contact.email}`}>{contact.email}</Link>
+            ) : null}
+            <div>
+              {address?.label ? (
+                <p className='mb-2 text-sm font-semibold uppercase tracking-wide'>
+                  {address.label}
                 </p>
-              </div>
+              ) : null}
+              {address?.lines ? (
+                <p className='whitespace-pre-line text-sm leading-6 text-[color:var(--bone)]/90'>
+                  {address.lines}
+                </p>
+              ) : null}
             </div>
-            <div className='grid grid-flow-col grid-cols-[max-content] items-start justify-start gap-x-3'>
-              {socialMediaLinks.map((link, index) => (
-                <Link key={index} href={link.url}>
-                  {link.icon}
-                </Link>
-              ))}
+
+            <div>
+              {contact?.label ? (
+                <p className='mb-2 text-sm font-semibold uppercase tracking-wide'>
+                  {contact.label}
+                </p>
+              ) : null}
+              {contact?.phone || contact?.email ? (
+                <div className='flex flex-col gap-1 text-sm'>
+                  {contact?.phone ? (
+                    <Link
+                      href={`tel:${contact.phone}`}
+                      className='underline decoration-[color:var(--bone)]/60 underline-offset-4 transition-colors'
+                    >
+                      {contact.phone}
+                    </Link>
+                  ) : null}
+                  {contact?.email ? (
+                    <Link
+                      href={`mailto:${contact.email}`}
+                      className='underline decoration-[color:var(--bone)]/60 underline-offset-4 transition-colors'
+                    >
+                      {contact.email}
+                    </Link>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           </div>
-          <div className='grid grid-cols-1 items-start gap-x-6 gap-y-10 md:grid-cols-2 md:gap-x-8 md:gap-y-4'>
-            {columnLinks.map((column, index) => (
-              <ul key={index}>
-                {column.links.map((link, linkIndex) => (
-                  <li key={linkIndex} className='py-2 text-sm font-semibold'>
-                    <Link href={link.url}>{link.title}</Link>
-                  </li>
+
+          <div className='flex flex-col items-start gap-4 md:items-end md:text-right'>
+            {safeSocialLinks.length ? (
+              <div className='flex items-center gap-3'>
+                {safeSocialLinks.map((link, index) => (
+                  <Link
+                    key={index}
+                    href={link.url}
+                    className='transition-transform duration-200 hover:-translate-y-0.5'
+                  >
+                    {link.icon}
+                  </Link>
                 ))}
-              </ul>
-            ))}
+              </div>
+            ) : null}
           </div>
-        </div>
-        <div className='h-px w-full bg-(--white)' />
-        <div className='flex flex-col-reverse items-start justify-between pb-4 pt-6 text-sm md:flex-row md:items-center md:pb-0 md:pt-8'>
-          <p className='mt-8 md:mt-0'>{footerText}</p>
-          <ul className='grid grid-flow-row grid-cols-[max-content] justify-center gap-y-4 text-sm md:grid-flow-col md:gap-x-6 md:gap-y-0'>
-            {footerLinks.map((link, index) => (
-              <li key={index} className='underline'>
-                <Link href={link.url}>{link.title}</Link>
-              </li>
-            ))}
-          </ul>
         </div>
       </div>
     </footer>
@@ -82,43 +114,16 @@ export const Footer = (props) => {
 };
 
 export const FooterDefaults = {
-  logo: {
-    url: '#',
-    src: 'https://d22po4pjz3o32e.cloudfront.net/logo-image.svg',
-    alt: 'Logo image',
-  },
   address: {
     label: 'Adress:',
-    value: 'Karl Johansgatan 152, 414 50 Göteborg',
+    lines: 'Karl Johansgatan 152\\n414 50 Göteborg',
   },
   contact: {
     label: 'Kontakt:',
     email: 'info@email.com',
   },
-  columnLinks: [
-    {
-      links: [
-        { title: 'Link One', url: '#' },
-        { title: 'Link Two', url: '#' },
-        { title: 'Link Three', url: '#' },
-        { title: 'Link Four', url: '#' },
-        { title: 'Link Five', url: '#' },
-      ],
-    },
-    {
-      links: [
-        { title: 'Link Six', url: '#' },
-        { title: 'Link Seven', url: '#' },
-        { title: 'Link Eight', url: '#' },
-        { title: 'Link Nine', url: '#' },
-        { title: 'Link Ten', url: '#' },
-      ],
-    },
-  ],
   socialMediaLinks: [
     { url: '#', icon: <BiLogoFacebookCircle className='size-6' /> },
     { url: '#', icon: <BiLogoInstagram className='size-6' /> },
   ],
-  footerText: '© ',
-  footerLinks: [{ title: 'Privacy Policy', url: '#' }],
 };
