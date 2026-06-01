@@ -303,7 +303,7 @@ export default function TattooerCalendar({ calendarId }) {
 
       {activeEvent ? (
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-[color:var(--ink)]/50 px-4'>
-          <div className='w-full max-w-lg bg-[var(--bone)] p-6 text-[var(--ink)]'>
+          <div className='w-full max-w-lg bg-[var(--bone)] p-6 text-[var(--ink)] border border-black'>
             <div className='mb-4 flex items-start justify-between gap-4'>
               <h3 className='text-xl font-bold'>{activeEvent.summary}</h3>
               <button
