@@ -2,14 +2,18 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
+const STOCKHOLM_TIME_ZONE = 'Europe/Stockholm';
+
 const formatDate = (date) =>
   date.toLocaleDateString('sv-SE', {
+    timeZone: STOCKHOLM_TIME_ZONE,
     year: 'numeric',
     month: 'long',
   });
 
 const formatTime = (date) =>
   date.toLocaleTimeString('sv-SE', {
+    timeZone: STOCKHOLM_TIME_ZONE,
     hour: '2-digit',
     minute: '2-digit',
   });
@@ -17,12 +21,14 @@ const formatTime = (date) =>
 const formatDateTime = (start, end, allDay) => {
   if (allDay) {
     return start.toLocaleDateString('sv-SE', {
+      timeZone: STOCKHOLM_TIME_ZONE,
       year: 'numeric',
       month: 'long',
       day: 'numeric',
     });
   }
   return `${start.toLocaleDateString('sv-SE', {
+    timeZone: STOCKHOLM_TIME_ZONE,
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -65,12 +71,25 @@ const buildCalendarGrid = (viewDate) => {
   return grid;
 };
 
+const getDateKey = (date) =>
+  new Intl.DateTimeFormat('sv-SE', {
+    timeZone: STOCKHOLM_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+
+const parseDateString = (dateString) => {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day);
+};
+
 const normalizeEventTime = (event) => {
   if (event.start?.date) {
     return {
       allDay: true,
-      start: new Date(event.start.date),
-      end: new Date(event.end?.date || event.start.date),
+      start: parseDateString(event.start.date),
+      end: parseDateString(event.end?.date || event.start.date),
     };
   }
   return {
@@ -90,6 +109,10 @@ export default function TattooerCalendar({ calendarId }) {
 
   const { start, end } = useMemo(() => buildMonthRange(viewDate), [viewDate]);
   const grid = useMemo(() => buildCalendarGrid(viewDate), [viewDate]);
+  const stockholmMonthKey = useMemo(
+    () => getDateKey(viewDate).slice(0, 7),
+    [viewDate]
+  );
 
   useEffect(() => {
     if (!calendarId || !apiKey) return;
@@ -106,6 +129,7 @@ export default function TattooerCalendar({ calendarId }) {
         url.searchParams.set('key', apiKey);
         url.searchParams.set('singleEvents', 'true');
         url.searchParams.set('orderBy', 'startTime');
+        url.searchParams.set('timeZone', STOCKHOLM_TIME_ZONE);
         url.searchParams.set('timeMin', start.toISOString());
         url.searchParams.set('timeMax', end.toISOString());
 
@@ -127,7 +151,7 @@ export default function TattooerCalendar({ calendarId }) {
     const map = new Map();
     events.forEach((event) => {
       const { start } = normalizeEventTime(event);
-      const key = start.toISOString().slice(0, 10);
+      const key = getDateKey(start);
       if (!map.has(key)) map.set(key, []);
       map.get(key).push(event);
     });
@@ -187,9 +211,9 @@ export default function TattooerCalendar({ calendarId }) {
           <div className='relative'>
             <div className='space-y-3 md:hidden min-h-[360px]'>
               {grid.map((date) => {
-                const key = date.toISOString().slice(0, 10);
+                const key = getDateKey(date);
                 const dayEvents = eventsByDay.get(key) || [];
-                const isCurrentMonth = date.getMonth() === viewDate.getMonth();
+                const isCurrentMonth = key.slice(0, 7) === stockholmMonthKey;
                 if (!dayEvents.length || !isCurrentMonth) return null;
 
                 return (
@@ -199,6 +223,7 @@ export default function TattooerCalendar({ calendarId }) {
                   >
                     <div className='mb-2 text-sm font-semibold'>
                       {date.toLocaleDateString('sv-SE', {
+                        timeZone: STOCKHOLM_TIME_ZONE,
                         weekday: 'long',
                         day: 'numeric',
                         month: 'short',
@@ -236,9 +261,9 @@ export default function TattooerCalendar({ calendarId }) {
                 </div>
               ))}
               {grid.map((date) => {
-                const key = date.toISOString().slice(0, 10);
+                const key = getDateKey(date);
                 const dayEvents = eventsByDay.get(key) || [];
-                const isCurrentMonth = date.getMonth() === viewDate.getMonth();
+                const isCurrentMonth = key.slice(0, 7) === stockholmMonthKey;
 
                 return (
                   <div
